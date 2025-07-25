@@ -1,0 +1,7 @@
+name: "test-cluster"
+ip: 192.167.1.1
+maxcon: 100
+bd: "./info/user.db"
+3proxy: 
+  config: "./info/test-config.cfg"
+  users: "./info/users.txt"
