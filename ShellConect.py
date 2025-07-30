@@ -6,6 +6,12 @@ from dataclasses import dataclass
 class WSConect: 
     token: str = ""
     server: str = "ws://localhost:8080/ws?token="
+    ws = None
+    handler = None
+
+
+    def isValid(self) -> bool: 
+        return self.ws is not None and self.handler is not None
 
     @classmethod
     def config(cls, token: str):
@@ -13,9 +19,10 @@ class WSConect:
             token = token
         )
     
-    async def handler_messages(self, ws):
+    async def handler_messages(self):
+        print(":run")
         try:
-            async for ms in ws: 
+            async for ms in self.ws: 
                 print(f"[server] {ms}")
         except websockets.exceptions.ConnectionClosed:
             print(f"[s:err] Connection close")
@@ -23,16 +30,37 @@ class WSConect:
 
     async def connect(self):
         url = self.server + self.token
-        async with websockets.connect(url) as ws: 
-            handler_tsk = asyncio.create_task(self.handler_messages(ws))
-            while True:
-                message = input("[client] input:")
-                if message == "~q":
-                    break
-                await ws.send(message)
-            print("[END]")
+        self.ws = await websockets.connect(url)
+        self.handler = asyncio.create_task(self.handler_messages())
+        
 
-tkn = "4b3c24f9fdca46bc8a0b94b3a747045e" 
+    async def send(self, msg: str):
+        if (self.isValid()):
+            await self.ws.send(msg)
+        else: 
+            print("[connect] Not Valid")
+    
+    async def listUsers(self):
+        await self.send("~users")
 
-wscon = WSConect.config(tkn)
-asyncio.run(wscon.connect())
+
+
+    def close(self):
+        if self.ws != None:
+            self.ws.close()
+        if self.handler != None:
+            self.handler.cancel()
+
+
+async def main():
+    tkn = "4b3c24f9fdca46bc8a0b94b3a747045e" 
+    wscon = WSConect.config(tkn)
+
+    await wscon.connect()
+    await wscon.listUsers()
+
+    await wscon.send("~test")
+
+    await wscon.close()
+
+asyncio.run(main())
