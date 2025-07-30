@@ -41,13 +41,13 @@ class WSConect:
             print("[connect] Not Valid")
     
     async def listUsers(self):
-        await self.send("~users")
+        await self.send("~users simple")
 
 
 
-    def close(self):
+    async def close(self):
         if self.ws != None:
-            self.ws.close()
+            await self.ws.close()
         if self.handler != None:
             self.handler.cancel()
 
