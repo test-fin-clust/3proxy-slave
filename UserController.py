@@ -22,6 +22,13 @@ class User:
                 login = sp_d[0],
                 password = sp_d[1]
             )
+        sp_d = data.split('@')
+        if len(sp_d) > 2:
+            return cls(
+                login = sp_d[0],
+                password = sp_d[1],
+                upDate = datetime.fromisoformat(sp_d[2])
+            )
 
     def toLine(self) -> str:
         return f"{self.login}:CL:{self.password}\n"

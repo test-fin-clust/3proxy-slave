@@ -2,6 +2,8 @@ name: "test-cluster"
 ip: 192.167.1.1
 maxcon: 100
 bd: "./info/user.db"
+endpoint: "ws://localhost:8080/ws?token="
+token: "4b3c24f9fdca46bc8a0b94b3a747045e"
 3proxy: 
   config: "./info/test-config.cfg"
   users: "./info/users.txt"
