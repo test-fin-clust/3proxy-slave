@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import TextIO
+import json
 
 @dataclass
 class Serv_info:
@@ -29,14 +30,16 @@ class ConfigInfo:
         return self.cfg_px is not None and self.path != "" and self.info is not None
 
     def toJsonInfo(self) -> str:
-        return f"""
-{{
-"isValid": {str(self.isValid()).lower()}, 
-"name": "{self.info.name}", 
-"ip":"{self.info.ip}", 
-"maximal":"{self.info.maxcon}", 
-"cofig":"{self.cfg_px}" 
-}}
-"""
+        data = {
+            "isValid": self.isValid(),
+            "name": self.info.name,
+            "ip": self.info.ip,
+            "maximal": self.info.maxcon,
+            "cofig": self.cfg_px,
+            "port": -1
+        }
+        return json.dumps(data)
+
+    # TODO port and type add implementaion read from file or configure other method's
 
         

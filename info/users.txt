@@ -1,11 +1,2 @@
-user1:CL:password
-user2:CL:password
-user3:CL:password
-user4:CL:password
-user5:CL:password
-user6:CL:password
-user7:CL:password
-user8:CL:password
-user9:CL:password
-user12:CL:passwosdd
-user212:CL:passwosdd
+user22:CL:password
+2c1q1DwdUusA:CL:58QH723U0wNe

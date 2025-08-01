@@ -38,7 +38,6 @@ class User:
             return False
         return self.login == other.login #and self.password == other.password
 
-    
 @dataclass
 class UserFile:
     path: str = ""
@@ -92,6 +91,11 @@ class UserFile:
     def delUser(self, usr :User): 
         if (self.isContainUser(usr)):
             self.usr_list.remove(usr)
+    
+    def clearFile(self):
+        self.usr_list.clear()
+        self.file.truncate(0)
+        self.file.seek(0)
 
 @dataclass
 class DBConnect: 
@@ -113,7 +117,7 @@ class DBConnect:
     
     def sendSimple(self, query: str, params: tuple = ()):
         if (self.isValid()):
-            self.conn.cursor().execute(query, params)
+            self.conn.cursor().execute(query, params).close()
             self.conn.commit()
 
     def addNewUser(self, usr: User):
@@ -140,15 +144,13 @@ class DBConnect:
         ]
 
     def delUser(self, login: str):
-        curs = self.conn.cursor()
-        curs.execute("DELETE FROM users WHERE login = ?", (login,))
-        row = curs.fetchone()
-        if row:
-            return User(login=row[0],password=row[1], upDate=datetime.fromisoformat(row[2]) if row[2] else None)
-        return None
+        self.sendSimple("DELETE FROM users WHERE login = ?", (login,))
 
     def remove_all_unactive(self):
         self.sendSimple("DELETE FROM users WHERE toDate IS NULL OR toDate < datetime('now')")
+
+    def remove_all(self):
+        self.sendSimple("DELETE FROM users")
     
     def isContain(self, login: str) -> bool:
         curs = self.conn.cursor()
@@ -159,4 +161,58 @@ class DBConnect:
         return False
     
     def updateUser(self, usr: User):
-        self.sendSimple(f"UPDATE users SET password = ?, upDate = ? WHERE login = ?", (usr.login, usr.password, usr.upDate))
+        self.sendSimple(f"UPDATE users SET password = ?, toDate = ? WHERE login = ?", (usr.password, usr.upDate, usr.login))
+
+@dataclass
+class DataConnect:
+    db :DBConnect = None
+    file: UserFile = None 
+
+    #
+    # TODO добавления пользователей 
+    # TODO Перезапись пользователей 
+    # TODO Очистка файла
+
+    def update(self, usr: User):
+        if usr is None:
+            return
+        if self.db.isContain(usr.login): 
+            self.db.updateUser(usr)
+        else: 
+            self.db.addNewUser(usr)
+        
+        self.file.usr_list = self.db.getAllActiveUser()
+        self.file.reWriteAllUser()
+
+    def updates(self, usrs: list[User]): 
+        if usrs is None:
+            return
+        for usr in usrs: 
+            if self.db.isContain(usr.login): 
+                self.db.updateUser(usr)
+            else: 
+                self.db.addNewUser(usr)
+
+        self.file.usr_list = self.db.getAllActiveUser()
+        # self.file.reWriteAllUser()
+
+    def block(self):
+        self.file.clearFile()
+        self.db.remove_all()
+
+    def clear(self):
+        self.db.remove_all_unactive()
+
+    @classmethod
+    def init(cls, db: DBConnect, file: UserFile): 
+        return cls (
+            db = db,
+            file = file
+        )
+    
+    def close(self):
+        self.file.close()
+        self.db.close()
+
+    def isValid(self) -> bool:
+        return self.db is not None and self.file is not None
