@@ -52,6 +52,10 @@ async def main()-> None:
                await ws_shel.listUsers()
             else:
                 print( f"{ws_shel.isUpdateUsers()} data {ws_shel.getUsers()}" )
+        elif mess == '/bd':
+            print(f"All active users in file {db_conn.getAllActiveUser()}")
+        if '/' in mess:
+            continue
         await ws_shel.send(mess)
     await ws_shel.close()
 

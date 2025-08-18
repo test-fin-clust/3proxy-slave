@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from UserController import User, DataConnect, DBConnect, UserFile
 from InfoServer import ConfigInfo
 import threading
+from aiocron import crontab
 
 @dataclass
 class WSDataPresent:
@@ -15,7 +16,6 @@ class WSDataPresent:
         return cls(
             cfg_info = info
         )
-
 
     def isValid(self) -> bool:
         #check nullable's object 
@@ -37,6 +37,7 @@ class WSConect:
     server: str = None
     ws = None
     handler = None
+    task = None
 
     cntrl: DataConnect = None
     data: WSDataPresent = None
@@ -58,6 +59,9 @@ class WSConect:
             print(f"[s:err] Connection close")
         print("exit")
     
+    async def task_period_update(self) -> None:
+        await self.send("~users simple")
+
     #integrated updates
     def parseUsers(self, msg: str) -> None:
         self.usr_list = list()
@@ -127,6 +131,7 @@ class WSConect:
         url = self.server + self.token
         self.ws = await websockets.connect(url)
         self.handler = asyncio.create_task(self.handler_messages())
+        self.task = crontab("*/1 * * * *", func= self.task_period_update)
         self.canWork = True
         self.canBlock.set()
 
@@ -158,6 +163,8 @@ class WSConect:
             await self.ws.close()
         if self.handler != None:
             self.handler.cancel()
+        if self.task != None:
+            self.task.stop()
 
     def isValid(self) -> bool: 
         return self.ws is not None and self.handler is not None and self.data is not None and self.cntrl is not None

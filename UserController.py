@@ -192,9 +192,8 @@ class DataConnect:
                 self.db.updateUser(usr)
             else: 
                 self.db.addNewUser(usr)
-
         self.file.usr_list = self.db.getAllActiveUser()
-        # self.file.reWriteAllUser()
+        self.file.reWriteAllUser()
 
     def block(self):
         self.file.clearFile()
