@@ -1,6 +1,7 @@
 import yaml
 import sys
 import asyncio
+import subprocess
 from UserController import User, UserFile, DBConnect
 from InfoServer import Serv_info, ConfigInfo
 from ShellConect import WSConect
@@ -32,12 +33,16 @@ def check_valid_cntrl_obj() -> bool:
 
     return ws_shel.isCorrect()
 
-async def main()-> None:
+async def main(proc: bool = False, com: str ="", arg: str ="")-> None:
     global usr_file, cfg_info, db_conn, ws_shel
     if not check_valid_cntrl_obj():
         print("Object is'nt checker object")
         return
     
+    cnt_proc = None
+    if(proc):
+        cnt_proc = subprocess.Popen([com, arg])
+
     print(f"Debug INFO of object: {usr_file}, {cfg_info.toJsonInfo()}, {db_conn.getAllActiveUser()}, {ws_shel}")
     
     await ws_shel.connect()
@@ -59,12 +64,20 @@ async def main()-> None:
         await ws_shel.send(mess)
     await ws_shel.close()
 
+    if cnt_proc is not None: 
+        cnt_proc.terminate()
+
     ws_shel.canBlock.wait()
 
 
 if len(sys.argv) > 1:
     if check_ini_cfg_file(sys.argv[1]): 
-        asyncio.run(main())
+        if len(sys.argv) > 3: 
+            print(f"Configuration for controll process {sys.argv[2]}, {sys.argv[3]}")
+            asyncio.run(main(proc=True, com=sys.argv[2], arg= sys.argv[3]))
+        else:
+            print(f"Simple start")
+            asyncio.run(main())
     else: 
         print('file error open')
 else:

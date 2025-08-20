@@ -11,7 +11,6 @@ COPY ./3proxy/bin/* /bin/
 COPY ./3proxy-slave/*.py /opt/
 
 EXPOSE 3128
-RUN ["3proxy", "${CFG_NAME}${CFG_PLACE}"]
 
 #install python
 RUN apt-get update && \
@@ -21,4 +20,4 @@ RUN apt-get update && \
 #integration config file
 COPY ./cfg.yaml ${CFG_PLACE}
 
-ENTRYPOINT ["python3", "/opt/Controller.py", "${CFG_PLACE}cfg.yaml"]
+ENTRYPOINT ["python3", "/opt/Controller.py", "${CFG_PLACE}cfg.yaml", "3proxy", "${CFG_PLACE}${CFG_NAME}"]
